@@ -1,0 +1,17 @@
+[
+  "Pressure",
+  "Flow_Rate",
+  "Temperature",
+  "Vibration",
+  "RPM",
+  "Operational_Hours",
+  "Zone",
+  "Block",
+  "Pipe",
+  "Location_Code",
+  "Latitude",
+  "Longitude",
+  "Pressure_Flow_Ratio",
+  "Pressure_x_Vib",
+  "Flow_Temp_Ratio"
+]
