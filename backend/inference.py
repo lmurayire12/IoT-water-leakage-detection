@@ -1,8 +1,8 @@
 """
-inference.py — Water Leak Detection Inference Script
+inference.py - Water Leak Detection Inference Script
 -----------------------------------------------------
 Called by the Node.js MQTT server with a JSON sensor reading via stdin.
-Loads the trained Random Forest model + scaler from D:\Leak\ and returns
+Loads the trained Random Forest model + scaler from D:/Leak/ and returns
 a JSON prediction result to stdout.
 
 Usage (from Node.js child_process):
@@ -46,10 +46,16 @@ def predict(reading: dict) -> dict:
     """
     r = reading.copy()
 
+    # ── Map ESP32 encoded columns to training column names ────────────────────
+    r['Zone']          = r.pop('Zone_enc',  r.get('Zone', 0))
+    r['Block']         = r.pop('Block_enc', r.get('Block', 0))
+    r['Pipe']          = r.pop('Pipe_enc',  r.get('Pipe', 0))
+    r['Location_Code'] = r.get('Location_Code', 0)
+
     # ── Engineered features (must match training pipeline exactly) ────────────
-    r['Pressure_Flow_Ratio']    = r['Pressure']  / (r['Flow_Rate'] + 1e-9)
-    r['Flow_Pressure_Product']  = r['Flow_Rate'] * r['Pressure']
-    r['Pressure_per_RPM']       = r['Pressure']  / (r['RPM'] + 1e-9)
+    r['Pressure_Flow_Ratio'] = r['Pressure']   / (r['Flow_Rate']    + 1e-6)
+    r['Pressure_x_Vib']      = r['Pressure']   * r['Vibration']
+    r['Flow_Temp_Ratio']     = r['Flow_Rate']  / (r['Temperature']  + 1e-6)
 
     # ── Scale ──────────────────────────────────────────────────────────────────
     X = pd.DataFrame([r])[FEATURE_COLS]
