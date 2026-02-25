@@ -3,22 +3,21 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>WASAC — Smart Water Leak Monitor</title>
+<title>Smart Water Leak Monitor</title>
 <script src="/socket.io/socket.io.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; }
   header { background: #161b22; padding: 16px 24px; border-bottom: 1px solid #30363d;
-           display: flex; align-items: center; gap: 12px; }
+           display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   header h1 { font-size: 1.2rem; font-weight: 600; }
-  header .badge { background: #238636; color: #fff; padding: 3px 10px;
-                  border-radius: 20px; font-size: 0.75rem; }
+  .badge { background: #238636; color: #fff; padding: 3px 10px;
+           border-radius: 20px; font-size: 0.75rem; }
   .badge.alert { background: #da3633; }
 
-  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-          padding: 24px; }
-  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px;
-          padding: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 24px; }
+  @media(max-width:900px){ .grid { grid-template-columns: repeat(2,1fr); } }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
   .card h3 { font-size: 0.78rem; color: #8b949e; text-transform: uppercase;
              letter-spacing: 0.05em; margin-bottom: 8px; }
   .card .value { font-size: 2rem; font-weight: 700; }
@@ -27,15 +26,24 @@
   .leak    { color: #f85149; }
   .warning { color: #d29922; }
 
+  .tabs { display: flex; gap: 0; margin: 0 24px; border-bottom: 1px solid #30363d; }
+  .tab-btn { padding: 10px 20px; background: none; border: none; color: #8b949e;
+             cursor: pointer; font-size: 0.88rem; border-bottom: 2px solid transparent; }
+  .tab-btn.active { color: #e6edf3; border-bottom-color: #388bfd; }
+
   .panel { margin: 0 24px 24px; background: #161b22;
-           border: 1px solid #30363d; border-radius: 8px; overflow: hidden; }
-  .panel-header { padding: 12px 16px; background: #21262d;
+           border: 1px solid #30363d; border-radius: 0 8px 8px 8px; overflow: hidden; }
+  .panel-header { padding: 12px 16px; background: #21262d; display: flex;
+                  justify-content: space-between; align-items: center;
                   font-size: 0.85rem; font-weight: 600; border-bottom: 1px solid #30363d; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
   table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
   th { padding: 10px 16px; text-align: left; color: #8b949e;
-       background: #0d1117; border-bottom: 1px solid #30363d; }
+       background: #0d1117; border-bottom: 1px solid #30363d; white-space: nowrap; }
   td { padding: 10px 16px; border-bottom: 1px solid #21262d; }
-  tr.leak-row { background: rgba(248, 81, 73, 0.08); }
+  tr.leak-row { background: rgba(248,81,73,0.08); }
   tr:hover { background: #21262d; }
 
   #status-dot { width: 10px; height: 10px; border-radius: 50%;
@@ -45,7 +53,17 @@
   .alert-banner { display: none; background: #da3633; color: #fff;
                   text-align: center; padding: 12px; font-weight: 600;
                   animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.7} }
+
+  .resolve-btn { padding: 4px 10px; font-size: 0.75rem; background: #238636;
+                 color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+  .resolve-btn:hover { background: #2ea043; }
+  .resolved-tag { color: #3fb950; font-size: 0.75rem; }
+  .empty-msg { padding: 24px; text-align: center; color: #8b949e; }
+
+  .refresh-btn { padding: 5px 12px; font-size: 0.78rem; background: #21262d;
+                 color: #8b949e; border: 1px solid #30363d; border-radius: 6px; cursor: pointer; }
+  .refresh-btn:hover { color: #e6edf3; }
 </style>
 </head>
 <body>
@@ -57,7 +75,7 @@
   <span style="margin-left:auto;font-size:0.8rem;color:#8b949e" id="last-update">—</span>
 </header>
 
-<div id="alert-banner" class="alert-banner">🚨 LEAK DETECTED — Check the readings table below</div>
+<div id="alert-banner" class="alert-banner">🚨 LEAK DETECTED — Check the Alerts tab</div>
 
 <div class="grid">
   <div class="card">
@@ -82,78 +100,204 @@
   </div>
 </div>
 
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('live')">Live Readings</button>
+  <button class="tab-btn"        onclick="switchTab('history')">History (DB)</button>
+  <button class="tab-btn"        onclick="switchTab('alerts')">Active Alerts</button>
+</div>
+
+<!-- Tab: Live -->
 <div class="panel">
-  <div class="panel-header">Live Readings (last 50)</div>
-  <table>
-    <thead>
-      <tr>
-        <th>Timestamp</th>
-        <th>Pressure</th>
-        <th>Flow Rate</th>
-        <th>Temperature</th>
-        <th>Vibration</th>
-        <th>Result</th>
-        <th>Confidence</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="readings-body"></tbody>
-  </table>
+  <div id="tab-live" class="tab-content active">
+    <div class="panel-header"><span>Live Readings (last 50)</span></div>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>Time</th><th>Pressure</th><th>Flow</th><th>Temp</th>
+        <th>Vibration</th><th>Result</th><th>Confidence</th><th>Action</th>
+      </tr></thead>
+      <tbody id="readings-body"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- Tab: History -->
+  <div id="tab-history" class="tab-content">
+    <div class="panel-header">
+      <span>Historical Readings (Database)</span>
+      <button class="refresh-btn" onclick="loadHistory()">↻ Refresh</button>
+    </div>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Timestamp</th><th>Pressure</th><th>Flow</th>
+        <th>Temp</th><th>Vibration</th><th>RPM</th><th>Result</th><th>Confidence</th>
+      </tr></thead>
+      <tbody id="history-body"><tr><td colspan="9" class="empty-msg">Click Refresh to load from database</td></tr></tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- Tab: Alerts -->
+  <div id="tab-alerts" class="tab-content">
+    <div class="panel-header">
+      <span>Active (Unresolved) Alerts</span>
+      <button class="refresh-btn" onclick="loadAlerts()">↻ Refresh</button>
+    </div>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>Alert ID</th><th>Triggered At</th><th>Type</th>
+        <th>Probability</th><th>SMS Sent</th><th>Shutoff Sent</th><th>Action</th>
+      </tr></thead>
+      <tbody id="alerts-body"><tr><td colspan="7" class="empty-msg">Click Refresh to load from database</td></tr></tbody>
+    </table>
+    </div>
+  </div>
 </div>
 
 <script>
   const socket   = io();
   let alertCount = 0;
 
+  // ── Socket.io ───────────────────────────────────────────────────────────────
   socket.on('connect', () => {
     document.getElementById('status-dot').classList.remove('disconnected');
-    document.getElementById('conn-badge').textContent = 'Connected';
-    document.getElementById('conn-badge').classList.remove('alert');
-    document.getElementById('conn-badge').style.background = '#238636';
+    const b = document.getElementById('conn-badge');
+    b.textContent = 'Connected'; b.style.background = '#238636';
   });
-
   socket.on('disconnect', () => {
     document.getElementById('status-dot').classList.add('disconnected');
-    document.getElementById('conn-badge').textContent = 'Disconnected';
-    document.getElementById('conn-badge').classList.add('alert');
+    const b = document.getElementById('conn-badge');
+    b.textContent = 'Disconnected'; b.style.background = '#da3633';
   });
-
   socket.on('reading', (data) => {
     const s = data.sensor || {};
     document.getElementById('v-pressure').textContent   = s.Pressure   ?? '—';
     document.getElementById('v-flow').textContent       = s.Flow_Rate  ?? '—';
-    document.getElementById('v-status').className       = 'value ' + (data.result === 'LEAK DETECTED' ? 'leak' : 'normal');
-    document.getElementById('v-status').textContent     = data.result  ?? '—';
+    const statusEl = document.getElementById('v-status');
+    statusEl.className = 'value ' + (data.result === 'LEAK DETECTED' ? 'leak' : 'normal');
+    statusEl.textContent = data.result ?? '—';
     document.getElementById('v-confidence').textContent = data.confidence ?? '—';
     document.getElementById('last-update').textContent  = 'Last update: ' + new Date(data.timestamp).toLocaleTimeString();
-    addRow(data, s);
+    addLiveRow(data, s);
   });
-
   socket.on('leak_alert', (data) => {
     alertCount++;
     document.getElementById('v-alerts').textContent = alertCount;
     const banner = document.getElementById('alert-banner');
+    banner.textContent = `🚨 LEAK DETECTED [${data.alertId}] — Confidence: ${data.confidence} | ${data.action}`;
     banner.style.display = 'block';
-    setTimeout(() => { banner.style.display = 'none'; }, 8000);
+    setTimeout(() => banner.style.display = 'none', 10000);
+  });
+  socket.on('alert_resolved', ({ alertId }) => {
+    const row = document.getElementById('alert-row-' + alertId);
+    if (row) row.remove();
   });
 
-  function addRow(data, s) {
+  // ── Live table ──────────────────────────────────────────────────────────────
+  function addLiveRow(data, s) {
     const tbody  = document.getElementById('readings-body');
     const isLeak = data.result === 'LEAK DETECTED';
     const tr     = document.createElement('tr');
     if (isLeak) tr.classList.add('leak-row');
     tr.innerHTML = `
       <td>${new Date(data.timestamp).toLocaleTimeString()}</td>
-      <td>${s.Pressure ?? '—'}</td>
+      <td>${s.Pressure  ?? '—'}</td>
       <td>${s.Flow_Rate ?? '—'}</td>
       <td>${s.Temperature ?? '—'}</td>
       <td>${s.Vibration ?? '—'}</td>
-      <td class="${isLeak ? 'leak' : 'normal'}">${data.result}</td>
+      <td class="${isLeak?'leak':'normal'}">${data.result}</td>
       <td>${data.confidence}</td>
-      <td>${data.action}</td>
-    `;
+      <td>${data.action}</td>`;
     tbody.insertBefore(tr, tbody.firstChild);
     if (tbody.children.length > 50) tbody.removeChild(tbody.lastChild);
+  }
+
+  // ── History tab ─────────────────────────────────────────────────────────────
+  async function loadHistory() {
+    const tbody = document.getElementById('history-body');
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">Loading…</td></tr>';
+    try {
+      const rows = await fetch('/api/results').then(r => r.json());
+      tbody.innerHTML = '';
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">No readings in database yet</td></tr>';
+        return;
+      }
+      rows.forEach((r, i) => {
+        const isLeak = r.ml_result === 'LEAK DETECTED';
+        const tr = document.createElement('tr');
+        if (isLeak) tr.classList.add('leak-row');
+        tr.innerHTML = `
+          <td>${i+1}</td>
+          <td>${new Date(r.timestamp).toLocaleString()}</td>
+          <td>${r.pressure ?? '—'}</td>
+          <td>${r.flow_rate ?? '—'}</td>
+          <td>${r.temperature ?? '—'}</td>
+          <td>${r.vibration ?? '—'}</td>
+          <td>${r.rpm ?? '—'}</td>
+          <td class="${isLeak?'leak':'normal'}">${r.ml_result ?? '—'}</td>
+          <td>${r.ml_confidence ?? '—'}</td>`;
+        tbody.appendChild(tr);
+      });
+    } catch {
+      tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">Database not connected</td></tr>';
+    }
+  }
+
+  // ── Alerts tab ──────────────────────────────────────────────────────────────
+  async function loadAlerts() {
+    const tbody = document.getElementById('alerts-body');
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">Loading…</td></tr>';
+    try {
+      const rows = await fetch('/api/alerts').then(r => r.json());
+      tbody.innerHTML = '';
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No active alerts — all clear ✅</td></tr>';
+        return;
+      }
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.id = 'alert-row-' + r.alert_id;
+        tr.classList.add('leak-row');
+        tr.innerHTML = `
+          <td>${r.alert_id}</td>
+          <td>${new Date(r.triggered_at).toLocaleString()}</td>
+          <td style="text-transform:capitalize">${r.leak_type}</td>
+          <td>${((r.probability||0)*100).toFixed(1)}%</td>
+          <td>${r.sms_sent ? '✅':'❌'}</td>
+          <td>${r.shutoff_sent ? '✅':'❌'}</td>
+          <td><button class="resolve-btn" onclick="resolveAlert('${r.alert_id}', this)">Mark Resolved</button></td>`;
+        tbody.appendChild(tr);
+      });
+    } catch {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">Database not connected</td></tr>';
+    }
+  }
+
+  async function resolveAlert(alertId, btn) {
+    btn.disabled = true; btn.textContent = '…';
+    try {
+      await fetch(`/api/alerts/${alertId}/resolve`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: 'Resolved from dashboard' })
+      });
+      const row = document.getElementById('alert-row-' + alertId);
+      if (row) row.remove();
+    } catch {
+      btn.disabled = false; btn.textContent = 'Mark Resolved';
+    }
+  }
+
+  // ── Tab switching ───────────────────────────────────────────────────────────
+  function switchTab(name) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
   }
 </script>
 </body>
