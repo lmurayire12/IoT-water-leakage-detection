@@ -4,11 +4,11 @@
 -- Usage: mysql -u root -p < schema.sql
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS wasac_leakdetection
+CREATE DATABASE IF NOT EXISTS leakdetection
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 
-USE wasac_leakdetection;
+USE leakdetection;
 
 -- ── USER ──────────────────────────────────────────────────────────────────────
 -- Homeowner accounts. One user can own multiple nodes.

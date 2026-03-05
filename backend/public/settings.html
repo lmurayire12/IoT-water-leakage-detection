@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Settings — Smart Water Leak Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  /* ── Theme Variables ── */
+  :root {
+    --bg:         #0d1117;
+    --surface:    #161b22;
+    --surface2:   #21262d;
+    --border:     #30363d;
+    --text:       #e6edf3;
+    --text-muted: #8b949e;
+    --accent:     #388bfd;
+    --green:      #3fb950;
+    --red:        #f85149;
+    --yellow:     #d29922;
+    --shadow:     rgba(0,0,0,0.4);
+    --header-bg:  rgba(22,27,34,0.85);
+  }
+  [data-theme="light"] {
+    --bg:         #f0f4f8;
+    --surface:    #ffffff;
+    --surface2:   #f6f8fa;
+    --border:     #d0d7de;
+    --text:       #1f2328;
+    --text-muted: #656d76;
+    --accent:     #0969da;
+    --green:      #1a7f37;
+    --red:        #d1242f;
+    --yellow:     #9a6700;
+    --shadow:     rgba(0,0,0,0.12);
+    --header-bg:  rgba(255,255,255,0.9);
+  }
+
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+    font-size: 14px;
+  }
+
+  /* ── Header ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--header-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-logo { font-size: 1.5rem; line-height: 1; }
+  .header-title { font-size: 1rem; font-weight: 700; white-space: nowrap; }
+  .header-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-link {
+    font-size: 0.82rem; font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .nav-link:hover { color: var(--text); background: var(--surface2); }
+  .nav-link.active { color: var(--accent); background: rgba(56,139,253,0.1); }
+
+  .theme-toggle {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    width: 36px; height: 36px;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+
+  /* ── Page Layout ── */
+  .page { max-width: 800px; margin: 0 auto; padding: 32px 24px; }
+  .page-title {
+    font-size: 1.5rem; font-weight: 800;
+    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .page-desc {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    margin-bottom: 28px;
+  }
+
+  /* ── Sections ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .section:hover { border-color: var(--accent); }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .section-header .s-icon { font-size: 1.2rem; }
+  .section-body { padding: 20px; }
+
+  /* ── Form Controls ── */
+  .field {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .field:last-child { border-bottom: none; }
+  .field-info { flex: 1; }
+  .field-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .field-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .field-control {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 200px;
+    justify-content: flex-end;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="password"],
+  select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 0.85rem;
+    font-family: inherit;
+    min-width: 180px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  input[type="number"] { min-width: 100px; text-align: center; }
+
+  /* ── Toggle Switch ── */
+  .toggle {
+    position: relative;
+    width: 46px; height: 24px;
+    flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle .slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .toggle .slider::before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 3px; bottom: 3px;
+    background: var(--text);
+    border-radius: 50%;
+    transition: transform 0.3s;
+  }
+  .toggle input:checked + .slider { background: var(--green); }
+  .toggle input:checked + .slider::before { transform: translateX(22px); }
+
+  /* ── Range Slider ── */
+  .range-group { display: flex; align-items: center; gap: 12px; min-width: 200px; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 120px; height: 6px;
+    background: var(--border);
+    border-radius: 4px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid var(--surface);
+    box-shadow: 0 2px 6px var(--shadow);
+  }
+  .range-val {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 42px;
+    text-align: center;
+  }
+
+  /* ── Buttons ── */
+  .btn-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 20px 0 0;
+  }
+  .btn {
+    font-family: inherit;
+    padding: 10px 24px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #0ea5e9, #388bfd);
+    color: #fff;
+    border: none;
+  }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text-muted);
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--accent); }
+  .btn-danger {
+    background: rgba(248,81,73,0.1);
+    color: var(--red);
+    border-color: var(--red);
+  }
+  .btn-danger:hover { background: var(--red); color: #fff; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--green);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    box-shadow: 0 8px 24px var(--shadow);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s;
+    z-index: 999;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { background: var(--red); }
+
+  /* ── Danger Zone ── */
+  .danger-zone .section-header { background: rgba(248,81,73,0.08); color: var(--red); }
+  .danger-zone { border-color: rgba(248,81,73,0.3); }
+  .danger-zone:hover { border-color: var(--red); }
+
+  /* ── Responsive ── */
+  @media(max-width: 600px) {
+    .field { flex-direction: column; gap: 10px; }
+    .field-control { justify-content: flex-start; min-width: unset; }
+    input[type="text"], input[type="number"], input[type="password"], select { min-width: 100%; }
+    .range-group { min-width: unset; }
+    .page { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <span class="header-logo">⚙️</span>
+  <span class="header-title">Settings</span>
+  <div class="header-right">
+    <a href="/" class="nav-link">📊 Dashboard</a>
+    <a href="/settings.html" class="nav-link active">⚙️ Settings</a>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle theme">🌙</button>
+  </div>
+</header>
+
+<div class="page">
+
+  <h1 class="page-title">⚙️ System Settings</h1>
+  <p class="page-desc">Configure your water leak detection system. Changes are saved to the server.</p>
+
+  <!-- ── MQTT Settings ── -->
+  <div class="section">
+    <div class="section-header"><span class="s-icon">📡</span> MQTT Connection</div>
+    <div class="section-body">
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Broker URL</div>
+          <div class="field-desc">MQTT broker address (e.g. mqtt://broker.hivemq.com:1883)</div>
+        </div>
+        <div class="field-control">
+          <input type="text" id="s-broker" placeholder="mqtt://broker.hivemq.com:1883"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Client ID</div>
+          <div class="field-desc">Unique identifier for this server on the broker</div>
+        </div>
+        <div class="field-control">
+          <input type="text" id="s-clientId" placeholder="leak-server-001"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Sensor Topic</div>
+          <div class="field-desc">Topic to subscribe for ESP32 sensor data</div>
+        </div>
+        <div class="field-control">
+          <input type="text" id="s-topicSensor" placeholder="iot/sensor/water"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Alerts Topic</div>
+          <div class="field-desc">Topic to publish leak alerts</div>
+        </div>
+        <div class="field-control">
+          <input type="text" id="s-topicAlerts" placeholder="iot/alerts/leak"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Shutoff Command Topic</div>
+          <div class="field-desc">Topic to send valve shutoff commands</div>
+        </div>
+        <div class="field-control">
+          <input type="text" id="s-topicShutoff" placeholder="iot/commands/shutoff"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ML Detection ── -->
+  <div class="section">
+    <div class="section-header"><span class="s-icon">🧠</span> ML Detection</div>
+    <div class="section-body">
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Leak Threshold</div>
+          <div class="field-desc">Probability above which a reading is classified as a leak (0.0 – 1.0)</div>
+        </div>
+        <div class="field-control">
+          <div class="range-group">
+            <input type="range" id="s-threshold" min="0.1" max="0.95" step="0.05" value="0.5"/>
+            <span class="range-val" id="threshold-val">0.50</span>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Python Command</div>
+          <div class="field-desc">Path or command to Python interpreter for inference script</div>
+        </div>
+        <div class="field-control">
+          <input type="text" id="s-pythonCmd" placeholder="python"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Notifications ── -->
+  <div class="section">
+    <div class="section-header"><span class="s-icon">🔔</span> Notifications</div>
+    <div class="section-body">
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">SMS Alerts</div>
+          <div class="field-desc">Send SMS notifications when a leak is detected</div>
+        </div>
+        <div class="field-control">
+          <label class="toggle">
+            <input type="checkbox" id="s-smsEnabled" checked/>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">SMS Phone Number</div>
+          <div class="field-desc">Number to receive leak alert messages</div>
+        </div>
+        <div class="field-control">
+          <input type="text" id="s-smsPhone" placeholder="+254700000000"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Auto Shutoff</div>
+          <div class="field-desc">Automatically send valve shutoff command on leak detection</div>
+        </div>
+        <div class="field-control">
+          <label class="toggle">
+            <input type="checkbox" id="s-autoShutoff" checked/>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Alert Cooldown</div>
+          <div class="field-desc">Minimum seconds between repeated alerts for same leak event</div>
+        </div>
+        <div class="field-control">
+          <input type="number" id="s-cooldown" min="5" max="600" step="5" value="60"/> <span style="color:var(--text-muted);font-size:0.78rem">sec</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Server ── -->
+  <div class="section">
+    <div class="section-header"><span class="s-icon">🖥️</span> Server</div>
+    <div class="section-body">
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Server Port</div>
+          <div class="field-desc">Port for the Express dashboard & API server</div>
+        </div>
+        <div class="field-control">
+          <input type="number" id="s-port" min="1000" max="65535" value="3000"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Dashboard Theme</div>
+          <div class="field-desc">Default theme when first opening the dashboard</div>
+        </div>
+        <div class="field-control">
+          <select id="s-defaultTheme">
+            <option value="dark">🌙 Dark Mode</option>
+            <option value="light">☀️ Light Mode</option>
+            <option value="system">🖥️ System Default</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Security ── -->
+  <div class="section">
+    <div class="section-header"><span class="s-icon">🔐</span> Security</div>
+    <div class="section-body">
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Change PIN Code</div>
+          <div class="field-desc">Update the 6-digit PIN used to access the dashboard</div>
+        </div>
+        <div class="field-control" style="flex-direction: column; align-items: flex-end; gap: 8px;">
+          <input type="password" id="s-currentPin" placeholder="Current PIN" maxlength="6" style="min-width:160px"/>
+          <input type="password" id="s-newPin"     placeholder="New PIN"     maxlength="6" style="min-width:160px"/>
+          <input type="password" id="s-confirmPin" placeholder="Confirm PIN" maxlength="6" style="min-width:160px"/>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Require PIN on Login</div>
+          <div class="field-desc">Show the PIN entry screen before accessing the dashboard</div>
+        </div>
+        <div class="field-control">
+          <label class="toggle">
+            <input type="checkbox" id="s-requirePin" checked/>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Danger Zone ── -->
+  <div class="section danger-zone">
+    <div class="section-header"><span class="s-icon">⚠️</span> Danger Zone</div>
+    <div class="section-body">
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Clear All Alerts</div>
+          <div class="field-desc">Resolve and archive all active leak alerts in the database</div>
+        </div>
+        <div class="field-control">
+          <button class="btn btn-danger" onclick="clearAlerts()">🗑️ Clear Alerts</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Reset to Defaults</div>
+          <div class="field-desc">Restore all settings to their original default values</div>
+        </div>
+        <div class="field-control">
+          <button class="btn btn-danger" onclick="resetDefaults()">↻ Reset All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Action Buttons ── -->
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="loadSettings()">↻ Discard Changes</button>
+    <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+  </div>
+
+</div>
+
+<!-- ── Toast Notification ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Theme Toggle ──────────────────────────────────────────────────────────
+  const themeBtn  = document.getElementById('theme-toggle');
+  const saved     = localStorage.getItem('wl-theme') || 'dark';
+  applyTheme(saved);
+
+  themeBtn.addEventListener('click', () => {
+    const c = document.documentElement.getAttribute('data-theme');
+    applyTheme(c === 'dark' ? 'light' : 'dark');
+  });
+
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+    themeBtn.title       = t === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    localStorage.setItem('wl-theme', t);
+  }
+
+  // ── Threshold Slider ──────────────────────────────────────────────────────
+  const slider = document.getElementById('s-threshold');
+  const valEl  = document.getElementById('threshold-val');
+  slider.addEventListener('input', () => { valEl.textContent = parseFloat(slider.value).toFixed(2); });
+
+  // ── Toast Notification ────────────────────────────────────────────────────
+  function toast(msg, error = false) {
+    const el = document.getElementById('toast');
+    el.textContent  = msg;
+    el.className    = 'toast show' + (error ? ' error' : '');
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  // ── Default Settings ──────────────────────────────────────────────────────
+  const DEFAULTS = {
+    broker:       'mqtt://broker.hivemq.com:1883',
+    clientId:     'leak-server-001',
+    topicSensor:  'iot/sensor/water',
+    topicAlerts:  'iot/alerts/leak',
+    topicShutoff: 'iot/commands/shutoff',
+    threshold:    0.5,
+    pythonCmd:    'python',
+    smsEnabled:   true,
+    smsPhone:     '',
+    autoShutoff:  true,
+    cooldown:     60,
+    port:         3000,
+    defaultTheme: 'dark',
+    requirePin:   true,
+  };
+
+  // ── Load Settings ─────────────────────────────────────────────────────────
+  function loadSettings() {
+    const s = JSON.parse(localStorage.getItem('wl-settings') || 'null') || { ...DEFAULTS };
+    document.getElementById('s-broker').value       = s.broker       || DEFAULTS.broker;
+    document.getElementById('s-clientId').value      = s.clientId     || DEFAULTS.clientId;
+    document.getElementById('s-topicSensor').value   = s.topicSensor  || DEFAULTS.topicSensor;
+    document.getElementById('s-topicAlerts').value   = s.topicAlerts  || DEFAULTS.topicAlerts;
+    document.getElementById('s-topicShutoff').value  = s.topicShutoff || DEFAULTS.topicShutoff;
+    slider.value = s.threshold ?? DEFAULTS.threshold;
+    valEl.textContent = parseFloat(slider.value).toFixed(2);
+    document.getElementById('s-pythonCmd').value     = s.pythonCmd    || DEFAULTS.pythonCmd;
+    document.getElementById('s-smsEnabled').checked  = s.smsEnabled   ?? DEFAULTS.smsEnabled;
+    document.getElementById('s-smsPhone').value      = s.smsPhone     || '';
+    document.getElementById('s-autoShutoff').checked  = s.autoShutoff  ?? DEFAULTS.autoShutoff;
+    document.getElementById('s-cooldown').value      = s.cooldown     ?? DEFAULTS.cooldown;
+    document.getElementById('s-port').value          = s.port         ?? DEFAULTS.port;
+    document.getElementById('s-defaultTheme').value  = s.defaultTheme || DEFAULTS.defaultTheme;
+    document.getElementById('s-requirePin').checked  = s.requirePin   ?? DEFAULTS.requirePin;
+    // Clear PIN fields
+    document.getElementById('s-currentPin').value = '';
+    document.getElementById('s-newPin').value     = '';
+    document.getElementById('s-confirmPin').value = '';
+    toast('Settings loaded');
+  }
+
+  // ── Save Settings ─────────────────────────────────────────────────────────
+  function saveSettings() {
+    // Validate PIN change if attempted
+    const newPin     = document.getElementById('s-newPin').value;
+    const confirmPin = document.getElementById('s-confirmPin').value;
+    if (newPin) {
+      if (newPin.length !== 6 || !/^\d{6}$/.test(newPin)) {
+        toast('PIN must be exactly 6 digits', true);
+        return;
+      }
+      if (newPin !== confirmPin) {
+        toast('New PINs do not match', true);
+        return;
+      }
+      // Save new PIN hash
+      localStorage.setItem('wl-pin', newPin);
+      toast('PIN updated!');
+    }
+
+    const settings = {
+      broker:       document.getElementById('s-broker').value.trim(),
+      clientId:     document.getElementById('s-clientId').value.trim(),
+      topicSensor:  document.getElementById('s-topicSensor').value.trim(),
+      topicAlerts:  document.getElementById('s-topicAlerts').value.trim(),
+      topicShutoff: document.getElementById('s-topicShutoff').value.trim(),
+      threshold:    parseFloat(slider.value),
+      pythonCmd:    document.getElementById('s-pythonCmd').value.trim(),
+      smsEnabled:   document.getElementById('s-smsEnabled').checked,
+      smsPhone:     document.getElementById('s-smsPhone').value.trim(),
+      autoShutoff:  document.getElementById('s-autoShutoff').checked,
+      cooldown:     parseInt(document.getElementById('s-cooldown').value),
+      port:         parseInt(document.getElementById('s-port').value),
+      defaultTheme: document.getElementById('s-defaultTheme').value,
+      requirePin:   document.getElementById('s-requirePin').checked,
+    };
+
+    localStorage.setItem('wl-settings', JSON.stringify(settings));
+    toast('✅ Settings saved successfully!');
+  }
+
+  // ── Clear Alerts ──────────────────────────────────────────────────────────
+  async function clearAlerts() {
+    if (!confirm('Are you sure you want to clear all active alerts?')) return;
+    try {
+      const alerts = await fetch('/api/alerts').then(r => r.json());
+      for (const a of alerts) {
+        await fetch(`/api/alerts/${a.alert_id}/resolve`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notes: 'Bulk cleared from settings' }),
+        });
+      }
+      toast(`✅ Cleared ${alerts.length} alert(s)`);
+    } catch {
+      toast('Failed to clear alerts', true);
+    }
+  }
+
+  // ── Reset Defaults ────────────────────────────────────────────────────────
+  function resetDefaults() {
+    if (!confirm('Reset ALL settings to factory defaults?')) return;
+    localStorage.removeItem('wl-settings');
+    loadSettings();
+    toast('↻ Settings reset to defaults');
+  }
+
+  // ── Auth guard ────────────────────────────────────────────────────────────
+  (function() {
+    const s = JSON.parse(localStorage.getItem('wl-settings') || '{}');
+    if (s.requirePin !== false && !sessionStorage.getItem('wl-auth')) {
+      window.location.href = '/login.html';
+    }
+  })();
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  loadSettings();
+</script>
+
+</body>
+</html>

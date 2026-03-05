@@ -68,7 +68,7 @@ ESP32 (or simulator)
     │  { "Pressure": 28, "Flow_Rate": 115, ... }
     ▼
 MQTT Broker (HiveMQ / Mosquitto)
-    │  topic: wasac/sensor/water
+    │  topic: iot/sensor/water
     ▼
 index.js (Node.js)
     │  spawns Python child process
@@ -80,8 +80,8 @@ inference.py
     │  returns JSON: { result, probability, confidence, action }
     ▼
 index.js
-    ├── Publishes result to: wasac/results
-    ├── If LEAK: publishes alert to: wasac/alerts/leak
+    ├── Publishes result to: iot/results
+    ├── If LEAK: publishes alert to: iot/alerts/leak
     ├── Appends to: alerts.log
     └── Broadcasts to dashboard via Socket.io
 ```
@@ -90,7 +90,7 @@ index.js
 
 ## ESP32 Payload Format
 
-The ESP32 firmware should publish this JSON to `wasac/sensor/water`:
+The ESP32 firmware should publish this JSON to `iot/sensor/water`:
 
 ```json
 {
@@ -150,5 +150,5 @@ LEAK_THRESHOLD=0.3   ← more sensitive (more alerts, fewer missed leaks)
 LEAK_THRESHOLD=0.7   ← more conservative (fewer false alarms)
 ```
 
-For a water utility (WASAC context), `0.3–0.4` is recommended — a missed leak
+For a water utility, `0.3–0.4` is recommended — a missed leak
 costs more in NRW revenue loss than a false alarm costs in inspection time.

@@ -9,7 +9,7 @@
 
 This project detects water pipe leaks in real time by combining IoT sensor hardware (ESP32 + flow/pressure sensors) with machine learning models trained on location-aware GIS data. Sensor readings are published over MQTT, processed by a Node.js backend, and classified by one of three ML models. Alerts are broadcast instantly to a live web dashboard.
 
-The system was designed with the Rwandan water utility (WASAC) context in mind, where Non-Revenue Water (NRW) losses are a significant operational challenge.
+The system was designed in the context of Rwandan water utilities, where Non-Revenue Water (NRW) losses are a significant operational challenge.
 
 ---
 
@@ -85,7 +85,7 @@ Run **cell 3 first** — it installs all required packages automatically via `pi
 ```
 ESP32 / simulator.js
     │  JSON payload every 5 s
-    │  topic: wasac/sensor/water
+    │  topic: iot/sensor/water
     ▼
 MQTT Broker (HiveMQ public / local Mosquitto)
     ▼
@@ -98,8 +98,8 @@ inference.py
     │  RandomForest.predict_proba() → JSON result
     ▼
 index.js
-    ├── Publishes result  → wasac/results
-    ├── If LEAK: publishes alert → wasac/alerts/leak
+    ├── Publishes result  → iot/results
+    ├── If LEAK: publishes alert → iot/alerts/leak
     ├── Appends entry to alerts.log
     └── Broadcasts to dashboard via Socket.io
 ```
@@ -123,9 +123,9 @@ Edit `.env` — the default uses the free public HiveMQ broker, which is fine fo
 
 ```env
 MQTT_BROKER=mqtt://broker.hivemq.com
-MQTT_TOPIC_SENSOR=wasac/sensor/water
-MQTT_TOPIC_RESULT=wasac/results
-MQTT_TOPIC_ALERT=wasac/alerts/leak
+MQTT_TOPIC_SENSOR=iot/sensor/water
+MQTT_TOPIC_RESULT=iot/results
+MQTT_TOPIC_ALERT=iot/alerts/leak
 LEAK_THRESHOLD=0.5
 PORT=3000
 ```
@@ -163,7 +163,7 @@ http://localhost:3000
 
 ### Sensor Payload
 
-The ESP32 firmware should publish this JSON to `wasac/sensor/water`:
+The ESP32 firmware should publish this JSON to `iot/sensor/water`:
 
 ```json
 {
@@ -220,7 +220,7 @@ Set `LEAK_THRESHOLD` in `.env` to control sensitivity:
 | `0.5` | Balanced (default) |
 | `0.7` | Conservative — fewer false alarms, more missed leaks |
 
-For a utility like WASAC, **0.3–0.4** is recommended — a missed leak costs more in NRW revenue loss than a false alarm costs in inspection time.
+For a water utility, **0.3–0.4** is recommended — a missed leak costs more in NRW revenue loss than a false alarm costs in inspection time.
 
 ---
 
@@ -239,7 +239,7 @@ For a utility like WASAC, **0.3–0.4** is recommended — a missed leak costs m
 
 - Mwitirehe et al. (2024). *Machine Learning for NRW reduction in Rwandan water utilities.*
 - Oren, M. & Stroh, N. (2013). *Hydraulic anomaly detection via pressure-flow ratio analysis.*
-- WASAC (2022). *Annual Non-Revenue Water Report.*
+- Rwanda Water Utility (2022). *Annual Non-Revenue Water Report.*
 
 ---
 

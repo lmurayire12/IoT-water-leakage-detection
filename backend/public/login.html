@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Smart Water Leak Monitor — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:         #0d1117;
+    --surface:    #161b22;
+    --surface2:   #21262d;
+    --border:     #30363d;
+    --text:       #e6edf3;
+    --text-muted: #8b949e;
+    --accent:     #388bfd;
+    --green:      #3fb950;
+    --red:        #f85149;
+    --shadow:     rgba(0,0,0,0.5);
+  }
+  [data-theme="light"] {
+    --bg:         #f0f4f8;
+    --surface:    #ffffff;
+    --surface2:   #f6f8fa;
+    --border:     #d0d7de;
+    --text:       #1f2328;
+    --text-muted: #656d76;
+    --accent:     #0969da;
+    --green:      #1a7f37;
+    --red:        #d1242f;
+    --shadow:     rgba(0,0,0,0.1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s, color 0.3s;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Animated Background Blobs ── */
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.12;
+    pointer-events: none;
+    animation: float 8s ease-in-out infinite;
+  }
+  body::before {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, #388bfd, transparent);
+    top: -100px; left: -100px;
+  }
+  body::after {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, #3fb950, transparent);
+    bottom: -80px; right: -80px;
+    animation-delay: -4s;
+  }
+  @keyframes float {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50%      { transform: translate(20px, 20px) scale(1.05); }
+  }
+
+  /* ── Theme Toggle (top right) ── */
+  .theme-toggle {
+    position: fixed;
+    top: 16px; right: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    z-index: 10;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 36px 36px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 32px 64px var(--shadow);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    animation: card-in 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(30px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ── Logo ── */
+  .logo-ring {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(56,139,253,0.2), rgba(63,185,80,0.15));
+    border: 2px solid rgba(56,139,253,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 20px;
+    animation: spin-glow 4s linear infinite;
+  }
+  @keyframes spin-glow {
+    0%,100% { box-shadow: 0 0 0 0 rgba(56,139,253,0.2); }
+    50%      { box-shadow: 0 0 20px 6px rgba(56,139,253,0.25); }
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+  }
+
+  /* ── PIN Input Row ── */
+  .pin-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  .pin-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+
+  .pin-box {
+    width: 52px; height: 62px;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text);
+    font-family: 'Inter', monospace;
+    outline: none;
+    transition: all 0.2s;
+    caret-color: var(--accent);
+  }
+  .pin-box:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px rgba(56,139,253,0.2);
+    transform: translateY(-2px);
+  }
+  .pin-box.filled {
+    border-color: var(--accent);
+    background: rgba(56,139,253,0.08);
+  }
+  .pin-box.error {
+    border-color: var(--red) !important;
+    background: rgba(248,81,73,0.08) !important;
+    animation: shake 0.35s ease;
+  }
+  .pin-box.success {
+    border-color: var(--green) !important;
+    background: rgba(63,185,80,0.1) !important;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+  }
+
+  /* ── Submit Button ── */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #1d6fe8, #388bfd);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(56,139,253,0.35); }
+  .submit-btn:active:not(:disabled) { transform: translateY(0); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Error / Hint messages ── */
+  .msg {
+    margin-top: 14px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    min-height: 20px;
+    transition: all 0.3s;
+  }
+  .msg.error   { color: var(--red); }
+  .msg.success { color: var(--green); }
+
+  /* ── Attempts ── */
+  .attempts {
+    margin-top: 10px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .dot-attempts { display: inline-flex; gap: 5px; margin-top: 4px; }
+  .dot-attempt {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .dot-attempt.used { background: var(--red); }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 24px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* ── Lockout screen ── */
+  .lockout {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0;
+  }
+  .lockout .lock-icon { font-size: 3rem; }
+  .lockout h2 { font-size: 1.1rem; font-weight: 700; color: var(--red); }
+  .lockout p  { font-size: 0.84rem; color: var(--text-muted); }
+  .countdown  { font-size: 1.8rem; font-weight: 800; color: var(--yellow); }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="theme-toggle" title="Toggle theme">🌙</button>
+
+<div class="card">
+  <div class="logo-ring">💧</div>
+  <h1>Smart Leak Monitor</h1>
+  <p class="subtitle">Enter your 6-digit access code to continue</p>
+
+  <!-- Normal login form -->
+  <div id="login-form">
+    <p class="pin-label">Access Code</p>
+    <div class="pin-row" id="pin-row">
+      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p0"/>
+      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p1"/>
+      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p2"/>
+      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p3"/>
+      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p4"/>
+      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p5"/>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" disabled onclick="verifyPin()">
+      🔓 Unlock Dashboard
+    </button>
+
+    <p class="msg" id="msg-el"></p>
+    <div class="attempts" id="attempts-wrap">
+      <div class="dot-attempts" id="dots"></div>
+    </div>
+  </div>
+
+  <!-- Lockout screen -->
+  <div class="lockout" id="lockout-screen">
+    <span class="lock-icon">🔒</span>
+    <h2>Too Many Attempts</h2>
+    <p>System locked. Try again in</p>
+    <div class="countdown" id="countdown">30</div>
+    <p class="footer">seconds</p>
+  </div>
+
+  <p class="footer">v1.0 &nbsp;·&nbsp; Water Leak Detection System</p>
+</div>
+
+<script>
+  // ── Theme ───────────────────────────────────────────────────────────────────
+  const btn = document.getElementById('theme-toggle');
+  const saved = localStorage.getItem('wl-theme') || 'dark';
+  applyTheme(saved);
+  btn.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    applyTheme(cur === 'dark' ? 'light' : 'dark');
+  });
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    btn.textContent = t === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('wl-theme', t);
+  }
+
+  // ── PIN Logic ───────────────────────────────────────────────────────────────
+  const MAX_ATTEMPTS  = 5;
+  const LOCKOUT_SECS  = 30;
+  const DEFAULT_PIN   = '123456';
+  const boxes         = Array.from(document.querySelectorAll('.pin-box'));
+  const submitBtn     = document.getElementById('submit-btn');
+  const msgEl         = document.getElementById('msg-el');
+  const dotsEl        = document.getElementById('dots');
+
+  let attempts = parseInt(localStorage.getItem('wl-attempts') || '0');
+  let lockedUntil = parseInt(localStorage.getItem('wl-locked-until') || '0');
+
+  // Build attempt dots
+  function renderDots() {
+    dotsEl.innerHTML = '';
+    for (let i = 0; i < MAX_ATTEMPTS; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot-attempt' + (i < attempts ? ' used' : '');
+      dotsEl.appendChild(d);
+    }
+  }
+  renderDots();
+
+  // Check if already locked on load
+  checkLockout();
+
+  function checkLockout() {
+    const now = Date.now();
+    if (lockedUntil > now) {
+      showLockout(Math.ceil((lockedUntil - now) / 1000));
+      return true;
+    }
+    return false;
+  }
+
+  // Focus management
+  boxes.forEach((box, i) => {
+    box.addEventListener('input', (e) => {
+      const val = e.target.value.replace(/\D/g, '');
+      e.target.value = val ? val[val.length - 1] : '';
+      e.target.classList.toggle('filled', !!e.target.value);
+      clearError();
+      if (val && i < 5) boxes[i + 1].focus();
+      updateSubmit();
+    });
+
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !box.value && i > 0) {
+        boxes[i - 1].value = '';
+        boxes[i - 1].classList.remove('filled');
+        boxes[i - 1].focus();
+        updateSubmit();
+      }
+      if (e.key === 'Enter') verifyPin();
+    });
+
+    box.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const pasted = (e.clipboardData || window.clipboardData)
+        .getData('text').replace(/\D/g, '').slice(0, 6);
+      pasted.split('').forEach((ch, idx) => {
+        if (boxes[idx]) { boxes[idx].value = ch; boxes[idx].classList.add('filled'); }
+      });
+      const next = Math.min(pasted.length, 5);
+      boxes[next].focus();
+      updateSubmit();
+    });
+  });
+
+  // Auto-focus first box
+  boxes[0].focus();
+
+  function updateSubmit() {
+    const full = boxes.every(b => b.value.length === 1);
+    submitBtn.disabled = !full;
+    if (full) submitBtn.style.background = 'linear-gradient(135deg,#1d6fe8,#388bfd)';
+  }
+
+  function getPin() { return boxes.map(b => b.value).join(''); }
+
+  function verifyPin() {
+    if (checkLockout()) return;
+
+    const storedPin = localStorage.getItem('wl-pin') || DEFAULT_PIN;
+    const entered   = getPin();
+
+    if (entered === storedPin) {
+      // Success
+      boxes.forEach(b => { b.classList.add('success'); b.classList.remove('error'); });
+      msgEl.textContent = '✅ Access granted — loading dashboard…';
+      msgEl.className   = 'msg success';
+      submitBtn.disabled = true;
+      // Reset attempts
+      attempts = 0;
+      localStorage.setItem('wl-attempts', '0');
+      localStorage.setItem('wl-locked-until', '0');
+      localStorage.setItem('wl-session', Date.now().toString());
+      setTimeout(() => { window.location.href = '/'; }, 800);
+    } else {
+      // Failure
+      attempts++;
+      localStorage.setItem('wl-attempts', attempts.toString());
+      renderDots();
+      boxes.forEach(b => { b.classList.add('error'); b.classList.remove('filled'); });
+      const remaining = MAX_ATTEMPTS - attempts;
+
+      if (attempts >= MAX_ATTEMPTS) {
+        const until = Date.now() + LOCKOUT_SECS * 1000;
+        localStorage.setItem('wl-locked-until', until.toString());
+        lockedUntil = until;
+        showLockout(LOCKOUT_SECS);
+      } else {
+        msgEl.textContent = `❌ Incorrect code. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`;
+        msgEl.className   = 'msg error';
+        setTimeout(() => {
+          boxes.forEach(b => { b.value = ''; b.classList.remove('error','filled'); });
+          clearError();
+          submitBtn.disabled = true;
+          boxes[0].focus();
+        }, 700);
+      }
+    }
+  }
+
+  function clearError() {
+    boxes.forEach(b => b.classList.remove('error'));
+    msgEl.textContent = '';
+    msgEl.className   = 'msg';
+  }
+
+  // ── Lockout UI ──────────────────────────────────────────────────────────────
+  function showLockout(seconds) {
+    document.getElementById('login-form').style.display   = 'none';
+    document.getElementById('lockout-screen').style.display = 'flex';
+    const cd = document.getElementById('countdown');
+    cd.textContent = seconds;
+    const interval = setInterval(() => {
+      seconds--;
+      cd.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(interval);
+        attempts = 0;
+        localStorage.setItem('wl-attempts', '0');
+        localStorage.setItem('wl-locked-until', '0');
+        lockedUntil = 0;
+        renderDots();
+        document.getElementById('login-form').style.display    = 'block';
+        document.getElementById('lockout-screen').style.display = 'none';
+        boxes.forEach(b => { b.value = ''; b.classList.remove('error','filled'); });
+        submitBtn.disabled = true;
+        boxes[0].focus();
+      }
+    }, 1000);
+  }
+</script>
+</body>
+</html>

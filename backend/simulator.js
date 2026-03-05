@@ -5,7 +5,7 @@
  * Use this to test the full pipeline before the physical hardware arrives.
  *
  * Run:  node simulator.js
- * Publishes to: wasac/sensor/water  every 5 seconds
+ * Publishes to: sensor/water  every 5 seconds
  *
  * Every ~10th reading is a simulated LEAK (low pressure + high flow).
  */
@@ -14,7 +14,7 @@ require('dotenv').config();
 const mqtt = require('mqtt');
 
 const BROKER       = process.env.MQTT_BROKER    || 'mqtt://broker.hivemq.com:1883';
-const TOPIC_SENSOR = process.env.TOPIC_SENSOR   || 'wasac/sensor/water';
+const TOPIC_SENSOR = process.env.TOPIC_SENSOR   || 'iot/sensor/water';
 const INTERVAL_MS  = 5000;  // 5 seconds — same as real ESP32
 
 const client = mqtt.connect(BROKER, {

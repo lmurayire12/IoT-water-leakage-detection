@@ -20,11 +20,11 @@ const { sendLeakAlert } = require('./sms');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const BROKER         = process.env.MQTT_BROKER    || 'mqtt://broker.hivemq.com:1883';
-const CLIENT_ID      = process.env.MQTT_CLIENT_ID || 'wasac-leak-server-001';
-const TOPIC_SENSOR   = process.env.TOPIC_SENSOR   || 'wasac/sensor/water';
-const TOPIC_ALERTS   = process.env.TOPIC_ALERTS   || 'wasac/alerts/leak';
-const TOPIC_RESULTS  = process.env.TOPIC_RESULTS  || 'wasac/results';
-const TOPIC_SHUTOFF  = process.env.TOPIC_SHUTOFF  || 'wasac/commands/shutoff';
+const CLIENT_ID      = process.env.MQTT_CLIENT_ID || 'leak-server-001';
+const TOPIC_SENSOR   = process.env.TOPIC_SENSOR   || 'iot/sensor/water';
+const TOPIC_ALERTS   = process.env.TOPIC_ALERTS   || 'iot/alerts/leak';
+const TOPIC_RESULTS  = process.env.TOPIC_RESULTS  || 'iot/results';
+const TOPIC_SHUTOFF  = process.env.TOPIC_SHUTOFF  || 'iot/commands/shutoff';
 const PYTHON_CMD     = process.env.PYTHON_CMD     || 'python';
 const THRESHOLD      = parseFloat(process.env.LEAK_THRESHOLD || '0.5');
 const PORT           = parseInt(process.env.PORT  || '3000');
