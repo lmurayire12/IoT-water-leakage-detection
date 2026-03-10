@@ -262,6 +262,23 @@
   .lockout h2 { font-size: 1.1rem; font-weight: 700; color: var(--red); }
   .lockout p  { font-size: 0.84rem; color: var(--text-muted); }
   .countdown  { font-size: 1.8rem; font-weight: 800; color: var(--yellow); }
+
+  /* ── Back button (setup flow) ── */
+  .back-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .back-btn:hover { color: var(--text); border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -270,38 +287,86 @@
 
 <div class="card">
   <div class="logo-ring">💧</div>
-  <h1>Smart Leak Monitor</h1>
-  <p class="subtitle">Enter your 6-digit access code to continue</p>
 
-  <!-- Normal login form -->
-  <div id="login-form">
-    <p class="pin-label">Access Code</p>
-    <div class="pin-row" id="pin-row">
-      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p0"/>
-      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p1"/>
-      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p2"/>
-      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p3"/>
-      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p4"/>
-      <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p5"/>
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!--  SCREEN 1 — FIRST-TIME SETUP (only shown when no PIN exists)        -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div id="setup-screen" style="display:none">
+    <h1>Welcome!</h1>
+    <p class="subtitle">Set up a 6-digit PIN to secure your dashboard</p>
+
+    <!-- Step A: Create PIN -->
+    <div id="setup-step1">
+      <p class="pin-label">Create Your PIN</p>
+      <div class="pin-row" id="setup-row-1">
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1"/>
+      </div>
+      <button class="submit-btn" id="setup-next-btn" disabled onclick="setupNext()">
+        Continue →
+      </button>
     </div>
 
-    <button class="submit-btn" id="submit-btn" disabled onclick="verifyPin()">
-      🔓 Unlock Dashboard
-    </button>
-
-    <p class="msg" id="msg-el"></p>
-    <div class="attempts" id="attempts-wrap">
-      <div class="dot-attempts" id="dots"></div>
+    <!-- Step B: Confirm PIN -->
+    <div id="setup-step2" style="display:none">
+      <p class="pin-label">Confirm Your PIN</p>
+      <div class="pin-row" id="setup-row-2">
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1"/>
+      </div>
+      <button class="submit-btn" id="setup-save-btn" disabled onclick="setupSave()">
+        🔐 Set PIN &amp; Enter
+      </button>
+      <button class="back-btn" onclick="setupBack()">← Start over</button>
     </div>
+
+    <p class="msg" id="setup-msg"></p>
   </div>
 
-  <!-- Lockout screen -->
-  <div class="lockout" id="lockout-screen">
-    <span class="lock-icon">🔒</span>
-    <h2>Too Many Attempts</h2>
-    <p>System locked. Try again in</p>
-    <div class="countdown" id="countdown">30</div>
-    <p class="footer">seconds</p>
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!--  SCREEN 2 — NORMAL LOGIN (shown when a PIN already exists)          -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div id="login-screen" style="display:none">
+    <h1>Smart Leak Monitor</h1>
+    <p class="subtitle">Enter your 6-digit PIN to continue</p>
+
+    <div id="login-form">
+      <p class="pin-label">Access Code</p>
+      <div class="pin-row" id="pin-row">
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p0"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p1"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p2"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p3"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p4"/>
+        <input class="pin-box" type="password" inputmode="numeric" maxlength="1" id="p5"/>
+      </div>
+
+      <button class="submit-btn" id="submit-btn" disabled onclick="verifyPin()">
+        🔓 Unlock Dashboard
+      </button>
+
+      <p class="msg" id="msg-el"></p>
+      <div class="attempts" id="attempts-wrap">
+        <div class="dot-attempts" id="dots"></div>
+      </div>
+    </div>
+
+    <!-- Lockout screen -->
+    <div class="lockout" id="lockout-screen">
+      <span class="lock-icon">🔒</span>
+      <h2>Too Many Attempts</h2>
+      <p>System locked. Try again in</p>
+      <div class="countdown" id="countdown">30</div>
+      <p class="footer">seconds</p>
+    </div>
   </div>
 
   <p class="footer">v1.0 &nbsp;·&nbsp; Water Leak Detection System</p>
@@ -322,159 +387,223 @@
     localStorage.setItem('wl-theme', t);
   }
 
-  // ── PIN Logic ───────────────────────────────────────────────────────────────
-  const MAX_ATTEMPTS  = 5;
-  const LOCKOUT_SECS  = 30;
-  const DEFAULT_PIN   = '123456';
-  const boxes         = Array.from(document.querySelectorAll('.pin-box'));
-  const submitBtn     = document.getElementById('submit-btn');
-  const msgEl         = document.getElementById('msg-el');
-  const dotsEl        = document.getElementById('dots');
-
-  let attempts = parseInt(localStorage.getItem('wl-attempts') || '0');
-  let lockedUntil = parseInt(localStorage.getItem('wl-locked-until') || '0');
-
-  // Build attempt dots
-  function renderDots() {
-    dotsEl.innerHTML = '';
-    for (let i = 0; i < MAX_ATTEMPTS; i++) {
-      const d = document.createElement('div');
-      d.className = 'dot-attempt' + (i < attempts ? ' used' : '');
-      dotsEl.appendChild(d);
-    }
-  }
-  renderDots();
-
-  // Check if already locked on load
-  checkLockout();
-
-  function checkLockout() {
-    const now = Date.now();
-    if (lockedUntil > now) {
-      showLockout(Math.ceil((lockedUntil - now) / 1000));
-      return true;
-    }
-    return false;
-  }
-
-  // Focus management
-  boxes.forEach((box, i) => {
-    box.addEventListener('input', (e) => {
-      const val = e.target.value.replace(/\D/g, '');
-      e.target.value = val ? val[val.length - 1] : '';
-      e.target.classList.toggle('filled', !!e.target.value);
-      clearError();
-      if (val && i < 5) boxes[i + 1].focus();
-      updateSubmit();
-    });
-
-    box.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace' && !box.value && i > 0) {
-        boxes[i - 1].value = '';
-        boxes[i - 1].classList.remove('filled');
-        boxes[i - 1].focus();
-        updateSubmit();
-      }
-      if (e.key === 'Enter') verifyPin();
-    });
-
-    box.addEventListener('paste', (e) => {
-      e.preventDefault();
-      const pasted = (e.clipboardData || window.clipboardData)
-        .getData('text').replace(/\D/g, '').slice(0, 6);
-      pasted.split('').forEach((ch, idx) => {
-        if (boxes[idx]) { boxes[idx].value = ch; boxes[idx].classList.add('filled'); }
+  // ── Helpers: wire up a pin-row ──────────────────────────────────────────────
+  function wireRow(rowEl, onComplete) {
+    const boxes = Array.from(rowEl.querySelectorAll('.pin-box'));
+    boxes.forEach((box, i) => {
+      box.addEventListener('input', (e) => {
+        const val = e.target.value.replace(/\D/g, '');
+        e.target.value = val ? val[val.length - 1] : '';
+        e.target.classList.toggle('filled', !!e.target.value);
+        clearRowError(boxes);
+        if (val && i < 5) boxes[i + 1].focus();
+        onComplete(boxes.every(b => b.value.length === 1));
       });
-      const next = Math.min(pasted.length, 5);
-      boxes[next].focus();
-      updateSubmit();
+      box.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !box.value && i > 0) {
+          boxes[i - 1].value = '';
+          boxes[i - 1].classList.remove('filled');
+          boxes[i - 1].focus();
+          onComplete(false);
+        }
+        if (e.key === 'Enter') {
+          if (boxes.every(b => b.value.length === 1)) {
+            // Find the visible submit button and click it
+            rowEl.closest('[id]')?.querySelector('.submit-btn:not([disabled])')?.click();
+          }
+        }
+      });
+      box.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData)
+          .getData('text').replace(/\D/g, '').slice(0, 6);
+        pasted.split('').forEach((ch, idx) => {
+          if (boxes[idx]) { boxes[idx].value = ch; boxes[idx].classList.add('filled'); }
+        });
+        const next = Math.min(pasted.length, 5);
+        boxes[next]?.focus();
+        onComplete(boxes.every(b => b.value.length === 1));
+      });
     });
-  });
-
-  // Auto-focus first box
-  boxes[0].focus();
-
-  function updateSubmit() {
-    const full = boxes.every(b => b.value.length === 1);
-    submitBtn.disabled = !full;
-    if (full) submitBtn.style.background = 'linear-gradient(135deg,#1d6fe8,#388bfd)';
+    return boxes;
   }
 
-  function getPin() { return boxes.map(b => b.value).join(''); }
+  function getRowPin(boxes) { return boxes.map(b => b.value).join(''); }
+  function clearRow(boxes) { boxes.forEach(b => { b.value = ''; b.classList.remove('filled','error','success'); }); }
+  function clearRowError(boxes) { boxes.forEach(b => b.classList.remove('error')); }
+  function shakeRow(boxes) { boxes.forEach(b => b.classList.add('error')); }
 
-  function verifyPin() {
-    if (checkLockout()) return;
+  // ══════════════════════════════════════════════════════════════════════════
+  //  DECIDE: first-time setup or normal login?
+  // ══════════════════════════════════════════════════════════════════════════
+  const hasPin = !!localStorage.getItem('wl-pin');
 
-    const storedPin = localStorage.getItem('wl-pin') || DEFAULT_PIN;
-    const entered   = getPin();
+  if (hasPin) {
+    document.getElementById('login-screen').style.display = 'block';
+    initLogin();
+  } else {
+    document.getElementById('setup-screen').style.display = 'block';
+    initSetup();
+  }
 
-    if (entered === storedPin) {
-      // Success
-      boxes.forEach(b => { b.classList.add('success'); b.classList.remove('error'); });
-      msgEl.textContent = '✅ Access granted — loading dashboard…';
-      msgEl.className   = 'msg success';
-      submitBtn.disabled = true;
-      // Reset attempts
-      attempts = 0;
-      localStorage.setItem('wl-attempts', '0');
-      localStorage.setItem('wl-locked-until', '0');
+  // ══════════════════════════════════════════════════════════════════════════
+  //  SETUP FLOW (first-time)
+  // ══════════════════════════════════════════════════════════════════════════
+  let setupPin1 = '';
+
+  function initSetup() {
+    const nextBtn   = document.getElementById('setup-next-btn');
+    const saveBtn   = document.getElementById('setup-save-btn');
+    const setupMsg  = document.getElementById('setup-msg');
+
+    const row1Boxes = wireRow(document.getElementById('setup-row-1'), (full) => { nextBtn.disabled = !full; });
+    const row2Boxes = wireRow(document.getElementById('setup-row-2'), (full) => { saveBtn.disabled = !full; });
+
+    row1Boxes[0].focus();
+
+    // Expose to global scope for onclick handlers
+    window.setupNext = function() {
+      setupPin1 = getRowPin(row1Boxes);
+      if (setupPin1.length !== 6) return;
+      document.getElementById('setup-step1').style.display = 'none';
+      document.getElementById('setup-step2').style.display = 'block';
+      setupMsg.textContent = '';
+      setupMsg.className = 'msg';
+      clearRow(row2Boxes);
+      saveBtn.disabled = true;
+      row2Boxes[0].focus();
+    };
+
+    window.setupSave = function() {
+      const confirm = getRowPin(row2Boxes);
+      if (confirm !== setupPin1) {
+        shakeRow(row2Boxes);
+        setupMsg.textContent = ' PINs do not match. Try again.';
+        setupMsg.className = 'msg error';
+        setTimeout(() => { clearRow(row2Boxes); saveBtn.disabled = true; row2Boxes[0].focus(); }, 700);
+        return;
+      }
+      // Save and enter
+      localStorage.setItem('wl-pin', setupPin1);
       localStorage.setItem('wl-session', Date.now().toString());
-      setTimeout(() => { window.location.href = '/'; }, 800);
-    } else {
-      // Failure
-      attempts++;
-      localStorage.setItem('wl-attempts', attempts.toString());
-      renderDots();
-      boxes.forEach(b => { b.classList.add('error'); b.classList.remove('filled'); });
-      const remaining = MAX_ATTEMPTS - attempts;
+      row2Boxes.forEach(b => b.classList.add('success'));
+      setupMsg.textContent = ' PIN set! Loading dashboard…';
+      setupMsg.className = 'msg success';
+      setTimeout(() => { window.location.href = '/'; }, 900);
+    };
 
-      if (attempts >= MAX_ATTEMPTS) {
-        const until = Date.now() + LOCKOUT_SECS * 1000;
-        localStorage.setItem('wl-locked-until', until.toString());
-        lockedUntil = until;
-        showLockout(LOCKOUT_SECS);
-      } else {
-        msgEl.textContent = `❌ Incorrect code. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`;
-        msgEl.className   = 'msg error';
-        setTimeout(() => {
-          boxes.forEach(b => { b.value = ''; b.classList.remove('error','filled'); });
-          clearError();
-          submitBtn.disabled = true;
-          boxes[0].focus();
-        }, 700);
+    window.setupBack = function() {
+      document.getElementById('setup-step2').style.display = 'none';
+      document.getElementById('setup-step1').style.display = 'block';
+      clearRow(row1Boxes);
+      document.getElementById('setup-next-btn').disabled = true;
+      document.getElementById('setup-msg').textContent = '';
+      setupPin1 = '';
+      row1Boxes[0].focus();
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  //  LOGIN FLOW (returning user)
+  // ══════════════════════════════════════════════════════════════════════════
+  function initLogin() {
+    const MAX_ATTEMPTS = 5;
+    const LOCKOUT_SECS = 30;
+    const submitBtn    = document.getElementById('submit-btn');
+    const msgEl        = document.getElementById('msg-el');
+    const dotsEl       = document.getElementById('dots');
+
+    let attempts    = parseInt(localStorage.getItem('wl-attempts') || '0');
+    let lockedUntil = parseInt(localStorage.getItem('wl-locked-until') || '0');
+
+    const boxes = wireRow(document.getElementById('pin-row'), (full) => { submitBtn.disabled = !full; });
+
+    // Attempt dots
+    function renderDots() {
+      dotsEl.innerHTML = '';
+      for (let i = 0; i < MAX_ATTEMPTS; i++) {
+        const d = document.createElement('div');
+        d.className = 'dot-attempt' + (i < attempts ? ' used' : '');
+        dotsEl.appendChild(d);
       }
     }
-  }
+    renderDots();
 
-  function clearError() {
-    boxes.forEach(b => b.classList.remove('error'));
-    msgEl.textContent = '';
-    msgEl.className   = 'msg';
-  }
+    // Check lockout
+    function checkLockout() {
+      const now = Date.now();
+      if (lockedUntil > now) {
+        showLockout(Math.ceil((lockedUntil - now) / 1000));
+        return true;
+      }
+      return false;
+    }
+    checkLockout() || boxes[0].focus();
 
-  // ── Lockout UI ──────────────────────────────────────────────────────────────
-  function showLockout(seconds) {
-    document.getElementById('login-form').style.display   = 'none';
-    document.getElementById('lockout-screen').style.display = 'flex';
-    const cd = document.getElementById('countdown');
-    cd.textContent = seconds;
-    const interval = setInterval(() => {
-      seconds--;
-      cd.textContent = seconds;
-      if (seconds <= 0) {
-        clearInterval(interval);
+    window.verifyPin = function() {
+      if (checkLockout()) return;
+      const storedPin = localStorage.getItem('wl-pin');
+      const entered   = getRowPin(boxes);
+
+      if (entered === storedPin) {
+        boxes.forEach(b => { b.classList.add('success'); b.classList.remove('error'); });
+        msgEl.textContent = '✅ Access granted — loading dashboard…';
+        msgEl.className   = 'msg success';
+        submitBtn.disabled = true;
         attempts = 0;
         localStorage.setItem('wl-attempts', '0');
         localStorage.setItem('wl-locked-until', '0');
-        lockedUntil = 0;
+        localStorage.setItem('wl-session', Date.now().toString());
+        setTimeout(() => { window.location.href = '/'; }, 800);
+      } else {
+        attempts++;
+        localStorage.setItem('wl-attempts', attempts.toString());
         renderDots();
-        document.getElementById('login-form').style.display    = 'block';
-        document.getElementById('lockout-screen').style.display = 'none';
-        boxes.forEach(b => { b.value = ''; b.classList.remove('error','filled'); });
-        submitBtn.disabled = true;
-        boxes[0].focus();
+        shakeRow(boxes);
+        const remaining = MAX_ATTEMPTS - attempts;
+
+        if (attempts >= MAX_ATTEMPTS) {
+          const until = Date.now() + LOCKOUT_SECS * 1000;
+          localStorage.setItem('wl-locked-until', until.toString());
+          lockedUntil = until;
+          showLockout(LOCKOUT_SECS);
+        } else {
+          msgEl.textContent = `❌ Incorrect code. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`;
+          msgEl.className   = 'msg error';
+          setTimeout(() => {
+            clearRow(boxes);
+            msgEl.textContent = '';
+            msgEl.className = 'msg';
+            submitBtn.disabled = true;
+            boxes[0].focus();
+          }, 700);
+        }
       }
-    }, 1000);
+    };
+
+    function showLockout(seconds) {
+      document.getElementById('login-form').style.display     = 'none';
+      document.getElementById('lockout-screen').style.display  = 'flex';
+      const cd = document.getElementById('countdown');
+      cd.textContent = seconds;
+      const interval = setInterval(() => {
+        seconds--;
+        cd.textContent = seconds;
+        if (seconds <= 0) {
+          clearInterval(interval);
+          attempts = 0;
+          localStorage.setItem('wl-attempts', '0');
+          localStorage.setItem('wl-locked-until', '0');
+          lockedUntil = 0;
+          renderDots();
+          document.getElementById('login-form').style.display     = 'block';
+          document.getElementById('lockout-screen').style.display  = 'none';
+          clearRow(boxes);
+          submitBtn.disabled = true;
+          boxes[0].focus();
+        }
+      }, 1000);
+    }
   }
 </script>
 </body>

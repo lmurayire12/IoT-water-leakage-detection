@@ -695,6 +695,44 @@
     document.getElementById('tab-' + name).classList.add('active');
     el.classList.add('active');
   }
+
+  // ── Auth guard — redirect to login if no session ───────────────────────
+  (function() {
+    const session = localStorage.getItem('wl-session');
+    if (!session) {
+      window.location.href = '/login.html';
+      return;
+    }
+    // Check auto-lock timeout
+    const settings = JSON.parse(localStorage.getItem('wl-settings') || '{}');
+    const timeout  = (settings.autoLockTimeout ?? 30) * 1000;
+    const lastSeen = parseInt(localStorage.getItem('wl-last-active') || '0');
+    if (timeout > 0 && lastSeen && (Date.now() - lastSeen > timeout)) {
+      localStorage.removeItem('wl-session');
+      window.location.href = '/login.html';
+      return;
+    }
+  })();
+
+  // ── Auto-lock: track when user leaves / returns ───────────────────────
+  (function() {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        localStorage.setItem('wl-last-active', Date.now().toString());
+      } else {
+        const settings = JSON.parse(localStorage.getItem('wl-settings') || '{}');
+        const timeout  = (settings.autoLockTimeout ?? 30) * 1000;
+        const lastSeen = parseInt(localStorage.getItem('wl-last-active') || '0');
+        if (timeout > 0 && lastSeen && (Date.now() - lastSeen > timeout)) {
+          localStorage.removeItem('wl-session');
+          window.location.href = '/login.html';
+        }
+      }
+    });
+    window.addEventListener('beforeunload', () => {
+      localStorage.setItem('wl-last-active', Date.now().toString());
+    });
+  })();
 </script>
 </body>
 </html>

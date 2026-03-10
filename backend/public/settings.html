@@ -505,6 +505,23 @@
           </label>
         </div>
       </div>
+      <div class="field">
+        <div class="field-info">
+          <div class="field-label">Auto-Lock Timeout</div>
+          <div class="field-desc">Automatically require PIN again after the app is closed or inactive for this duration</div>
+        </div>
+        <div class="field-control">
+          <select id="s-autoLockTimeout">
+            <option value="15">15 seconds</option>
+            <option value="30" selected>30 seconds</option>
+            <option value="60">1 minute</option>
+            <option value="120">2 minutes</option>
+            <option value="300">5 minutes</option>
+            <option value="600">10 minutes</option>
+            <option value="0">Never</option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -587,10 +604,11 @@
     smsEnabled:   true,
     smsPhone:     '',
     autoShutoff:  true,
-    cooldown:     60,
-    port:         3000,
-    defaultTheme: 'dark',
-    requirePin:   true,
+    cooldown:        60,
+    port:            3000,
+    defaultTheme:    'dark',
+    requirePin:      true,
+    autoLockTimeout: 30,
   };
 
   // ── Load Settings ─────────────────────────────────────────────────────────
@@ -611,6 +629,7 @@
     document.getElementById('s-port').value          = s.port         ?? DEFAULTS.port;
     document.getElementById('s-defaultTheme').value  = s.defaultTheme || DEFAULTS.defaultTheme;
     document.getElementById('s-requirePin').checked  = s.requirePin   ?? DEFAULTS.requirePin;
+    document.getElementById('s-autoLockTimeout').value = s.autoLockTimeout ?? DEFAULTS.autoLockTimeout;
     // Clear PIN fields
     document.getElementById('s-currentPin').value = '';
     document.getElementById('s-newPin').value     = '';
@@ -650,8 +669,9 @@
       autoShutoff:  document.getElementById('s-autoShutoff').checked,
       cooldown:     parseInt(document.getElementById('s-cooldown').value),
       port:         parseInt(document.getElementById('s-port').value),
-      defaultTheme: document.getElementById('s-defaultTheme').value,
-      requirePin:   document.getElementById('s-requirePin').checked,
+      defaultTheme:    document.getElementById('s-defaultTheme').value,
+      requirePin:      document.getElementById('s-requirePin').checked,
+      autoLockTimeout: parseInt(document.getElementById('s-autoLockTimeout').value),
     };
 
     localStorage.setItem('wl-settings', JSON.stringify(settings));
@@ -684,12 +704,45 @@
     toast('↻ Settings reset to defaults');
   }
 
-  // ── Auth guard ────────────────────────────────────────────────────────────
+  // ── Auth guard — redirect to login if no session ─────────────────────
   (function() {
-    const s = JSON.parse(localStorage.getItem('wl-settings') || '{}');
-    if (s.requirePin !== false && !sessionStorage.getItem('wl-auth')) {
+    const session = localStorage.getItem('wl-session');
+    if (!session) {
       window.location.href = '/login.html';
+      return;
     }
+    // Check auto-lock timeout
+    const settings = JSON.parse(localStorage.getItem('wl-settings') || '{}');
+    const timeout  = (settings.autoLockTimeout ?? 30) * 1000;
+    const lastSeen = parseInt(localStorage.getItem('wl-last-active') || '0');
+    if (timeout > 0 && lastSeen && (Date.now() - lastSeen > timeout)) {
+      localStorage.removeItem('wl-session');
+      window.location.href = '/login.html';
+      return;
+    }
+  })();
+
+  // ── Auto-lock: track when user leaves / returns ───────────────────────
+  (function() {
+    // Save timestamp whenever the page is hidden or closed
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        localStorage.setItem('wl-last-active', Date.now().toString());
+      } else {
+        // User came back — check if timeout exceeded
+        const settings = JSON.parse(localStorage.getItem('wl-settings') || '{}');
+        const timeout  = (settings.autoLockTimeout ?? 30) * 1000;
+        const lastSeen = parseInt(localStorage.getItem('wl-last-active') || '0');
+        if (timeout > 0 && lastSeen && (Date.now() - lastSeen > timeout)) {
+          localStorage.removeItem('wl-session');
+          window.location.href = '/login.html';
+        }
+      }
+    });
+    // Also save on page unload (closing tab/browser)
+    window.addEventListener('beforeunload', () => {
+      localStorage.setItem('wl-last-active', Date.now().toString());
+    });
   })();
 
   // ── Init ──────────────────────────────────────────────────────────────────
