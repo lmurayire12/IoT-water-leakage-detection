@@ -39,7 +39,7 @@ const char* SHUTOFF_TOPIC = "iot/commands/shutoff";
 
 // ── Flow Sensor config ─────────────────────────────────────────────────────
 const int   SENSOR_PIN        = 19;
-const float CALIBRATION_FACTOR = 7.5;
+const float CALIBRATION_FACTOR = 7.5;   // YF-S201: frequency(Hz) / 7.5 = L/min
 const unsigned long SEND_INTERVAL = 2000;
 
 // ── DS18B20 Temperature Sensor ──────────────────────────────────────────────
@@ -53,10 +53,10 @@ Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
 bool adxlConnected = false;
 
 // ── HX710B Pressure Sensor ─────────────────────────────────────────────────
-const int PRESSURE_OUT_PIN = 32;   // OUT → GPIO 32
-const int PRESSURE_SCK_PIN = 33;   // SCK → GPIO 33
+const int PRESSURE_OUT_PIN = 32;
+const int PRESSURE_SCK_PIN = 33;
 bool pressureSensorConnected = false;
-long pressureOffset = 0;           // baseline offset for calibration
+long pressureOffset = 0;
 
 // ── GIS location (Kigali) ──────────────────────────────────────────────────
 const float LATITUDE  = -1.9441;
@@ -131,13 +131,11 @@ float getVibration() {
 
 // ── Read raw value from HX710B pressure sensor ─────────────────────────────
 long readHX710B() {
-  // Wait for the sensor to be ready (OUT goes LOW when data is ready)
   unsigned long timeout = millis();
   while (digitalRead(PRESSURE_OUT_PIN) == HIGH) {
-    if (millis() - timeout > 100) return 0;  // timeout after 100ms
+    if (millis() - timeout > 100) return 0;
   }
 
-  // Read 24 bits of data
   long value = 0;
   for (int i = 0; i < 24; i++) {
     digitalWrite(PRESSURE_SCK_PIN, HIGH);
@@ -147,15 +145,13 @@ long readHX710B() {
     delayMicroseconds(1);
   }
 
-  // 25th clock pulse — sets next conversion to temperature (default mode)
   digitalWrite(PRESSURE_SCK_PIN, HIGH);
   delayMicroseconds(1);
   digitalWrite(PRESSURE_SCK_PIN, LOW);
   delayMicroseconds(1);
 
-  // Convert from 24-bit two's complement
   if (value & 0x800000) {
-    value |= 0xFF000000;  // sign extend for negative values
+    value |= 0xFF000000;
   }
 
   return value;
@@ -163,23 +159,18 @@ long readHX710B() {
 
 // ── Get pressure reading in kPa ────────────────────────────────────────────
 float getPressure() {
-  if (!pressureSensorConnected) return 55.0;  // fallback default
+  if (!pressureSensorConnected) return 55.0;
 
   long rawValue = readHX710B();
-  if (rawValue == 0) return 55.0;  // timeout fallback
+  if (rawValue == 0) return 55.0;
 
-  // Subtract baseline offset and convert to kPa
-  // The HX710B gives relative readings — we use the startup baseline as zero
   long adjusted = rawValue - pressureOffset;
-
-  // Convert to kPa (approximate scaling factor — adjust based on your sensor)
-  // Positive values = pressure above atmospheric
   float pressure_kPa = adjusted / 100.0;
 
   return pressure_kPa;
 }
 
-// ── Calibrate pressure sensor (take baseline reading at startup) ───────────
+// ── Calibrate pressure sensor ──────────────────────────────────────────────
 void calibratePressureSensor() {
   Serial.print("Calibrating pressure sensor...");
   long total = 0;
@@ -232,7 +223,6 @@ void setup() {
   pinMode(PRESSURE_SCK_PIN, OUTPUT);
   digitalWrite(PRESSURE_SCK_PIN, LOW);
 
-  // Test if sensor responds
   unsigned long testTimeout = millis();
   bool sensorReady = false;
   while (millis() - testTimeout < 500) {
@@ -271,9 +261,12 @@ void loop() {
   if (millis() - lastSend >= SEND_INTERVAL) {
     detachInterrupt(digitalPinToInterrupt(SENSOR_PIN));
 
-    // 1. Flow Rate
+    // 1. Flow Rate — FIXED FORMULA
+    // YF-S201: Frequency (Hz) = pulses / elapsed_seconds
+    // Flow Rate (L/min) = Frequency / 7.5
     float elapsed = (millis() - lastSend) / 1000.0;
-    flowRate = (pulseCount / CALIBRATION_FACTOR) / elapsed * 60.0;
+    float frequency = pulseCount / elapsed;              // Hz (pulses per second)
+    flowRate = frequency / CALIBRATION_FACTOR;            // L/min
     opHours++;
 
     // 2. Temperature
@@ -295,8 +288,8 @@ void loop() {
     doc["Flow_Rate"]         = round(flowRate * 100.0) / 100.0;
     doc["Temperature"]       = round(temperature * 100.0) / 100.0;
     doc["Vibration"]         = round(vibration * 100.0) / 100.0;
-    doc["Pressure"]          = round(pressure * 100.0) / 100.0;  // REAL sensor data
-    doc["RPM"]               = 2000.0;  // default — no RPM sensor
+    doc["Pressure"]          = round(pressure * 100.0) / 100.0;
+    doc["RPM"]               = 2000.0;
     doc["Operational_Hours"] = (int)opHours;
 
     // GIS / location data

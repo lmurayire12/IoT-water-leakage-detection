@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: smart-water-leak-monitor
+    runtime: node
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: node backend/index.js
+    envVars:
+      - key: MQTT_BROKER
+        value: mqtt://broker.hivemq.com:1883
+      - key: MQTT_CLIENT_ID
+        value: leak-server-001
+      - key: TOPIC_SENSOR
+        value: iot/sensor/water
+      - key: TOPIC_ALERTS
+        value: iot/alerts/leak
+      - key: TOPIC_RESULTS
+        value: iot/results
+      - key: TOPIC_SHUTOFF
+        value: iot/commands/shutoff
+      - key: PYTHON_CMD
+        value: python3
+      - key: LEAK_THRESHOLD
+        value: "0.5"
+      - key: PORT
+        value: "3000"
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: leakdetection
+      - key: AT_API_KEY
+        sync: false
+      - key: AT_USERNAME
+        value: lmurayire
+      - key: ALERT_PHONE_NUMBERS
+        value: "+250789487154"
