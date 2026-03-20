@@ -374,8 +374,9 @@
 
 <!-- ── Header ── -->
 <header>
-  <link rel="icon" href="/favicon.jpg" type="image/x-icon">
+  <link rel="icon" href="/icon-192x192.png" type="image/png">
   <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0ea5e9">
   <span class="header-logo">💧</span>
   <span class="header-title">Smart Water Leak Monitor</span>
   <div class="header-right">
@@ -735,6 +736,12 @@
       localStorage.setItem('wl-last-active', Date.now().toString());
     });
   })();
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
 </script>
 </body>
 </html>
