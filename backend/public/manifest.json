@@ -1,0 +1,17 @@
+{
+  "name": "Smart Water Leak Monitor",
+  "short_name": "LeakMonitor",
+  "description": "IoT + AI Water Leakage Detection System for Rwandan Households",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0ea5e9",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
