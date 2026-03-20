@@ -79,19 +79,27 @@ def rule_based_detection(reading: dict, history: list) -> dict:
     reasons = []
     
     # ── Rule 1: Persistent low flow (classic slow leak) ──────────────────────
-    # A small continuous flow (0.05 - 0.8 L/min) when nobody is using water
+    # A small continuous flow (0.05 - 1.0 L/min) when nobody is using water
     # is the most common leak pattern
-    if 0.05 <= flow <= 0.8:
-        leak_score += 0.4
+    if 0.05 <= flow <= 1.0:
+        leak_score += 0.5
         reasons.append(f"Low continuous flow detected: {flow:.2f} L/min")
         
-        # Check if this low flow has been persistent (multiple readings)
-        if len(history) >= 5:
-            recent_flows = [h.get('Flow_Rate', 0) for h in history[-5:]]
-            persistent_low = all(0.05 <= f <= 0.8 for f in recent_flows)
+        # Check if this low flow has been persistent (3+ readings = 6 seconds)
+        if len(history) >= 3:
+            recent_flows = [h.get('Flow_Rate', 0) for h in history[-3:]]
+            persistent_low = all(0.05 <= f <= 1.0 for f in recent_flows)
             if persistent_low:
-                leak_score += 0.3  # Strong indicator — persistent low flow
-                reasons.append("Persistent low flow for 10+ seconds")
+                leak_score += 0.4  # Strong indicator — persistent low flow
+                reasons.append("Persistent low flow for 6+ seconds")
+        
+        # Even stronger if persistent for 10+ readings (20 seconds)
+        if len(history) >= 10:
+            recent_flows = [h.get('Flow_Rate', 0) for h in history[-10:]]
+            persistent_long = all(0.05 <= f <= 1.0 for f in recent_flows)
+            if persistent_long:
+                leak_score = 1.0  # Definite leak
+                reasons.append("Persistent low flow for 20+ seconds — definite leak")
     
     # ── Rule 2: Flow when expected to be off ─────────────────────────────────
     # If there was zero flow, then suddenly small flow appears
@@ -196,8 +204,8 @@ def ml_detection(reading: dict) -> float:
 def predict(reading: dict) -> dict:
     """
     Combines rule-based and ML detection:
-    - Rule-based: weight 0.7 (tuned for your real sensors)
-    - ML model:   weight 0.3 (trained on Kaggle data, secondary)
+    - Uses the HIGHER score of the two layers
+    - This ensures a leak is caught if EITHER layer detects it
     """
     # Load history and add current reading
     history = load_history()
@@ -209,8 +217,8 @@ def predict(reading: dict) -> dict:
     # Layer 2: ML model
     ml_score = ml_detection(reading)
     
-    # Combined score (weighted)
-    combined_score = (rule_score * 0.7) + (ml_score * 0.3)
+    # Use the MAX of both scores — if either layer says leak, it's a leak
+    combined_score = max(rule_score, ml_score)
     combined_score = min(combined_score, 1.0)
     
     # Determine label
