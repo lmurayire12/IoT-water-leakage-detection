@@ -13,6 +13,9 @@ const pool = mysql.createPool({
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,
+  ssl: process.env.DB_HOST && process.env.DB_HOST !== 'localhost'
+    ? { rejectUnauthorized: true }
+    : undefined,
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
