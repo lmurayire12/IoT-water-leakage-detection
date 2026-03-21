@@ -12,7 +12,7 @@ This project detects water pipe leaks in real time by combining IoT sensor hardw
 
 The system addresses Rwanda's **Non-Revenue Water (NRW)** crisis - the country loses **41–44% of its treated water** to leaks, costing approximately **28.8 billion RWF annually**. This solution targets the "last-mile" gap where WASAC monitors the grid but individual households remain blind to their own leaks.
 
-## Live Demo & Video
+## Live Demo & Web Deployment
 
 | Resource | Link |
 |----------|------|
